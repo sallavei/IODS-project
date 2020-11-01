@@ -1,6 +1,8 @@
+
 ---
 title: "IODS course project"
-output:
+Author: Salla Veijonaho
+  output:
   html_document:
     theme: cosmo
     toc: true
