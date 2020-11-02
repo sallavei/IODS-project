@@ -1,10 +1,9 @@
-# Fiiliksi‰ kurssin alusta
+# Day 1
 
-*Kuulin kurssista ensimm‰isen kerran viime vuonna yst‰vilt‰ni. Minulla on pitk‰‰n ollut mieless‰, ett‰ olisi hyv‰ opetella R:n perusteita hieman kattavammin.*
+*I heard about this course from my friends. They took it last year and they really liked it. I've bee thinking that I should learn some basics of R for a long time now and now I had the opportunity to attend to this course*.
 
-**P‰iv‰kirjani:**
-<https://sallavei.github.io/IODS-project>
-[link](https://sallavei.github.io/IODS-project)
+**My diary:**
+[Click here](https://sallavei.github.io/IODS-project)
 
 
 ```{r}
