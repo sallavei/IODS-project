@@ -436,8 +436,10 @@ summary {
 <div id="TOC">
 <ul>
 <li><a href="#introduction-to-open-data-science---course-project">Introduction to Open Data Science - Course Project</a></li>
-<li><a href="#day-1">Day 1</a></li>
-<li><a href="#insert-chapter-2-title-here">Insert chapter 2 title here</a></li>
+<li><a href="#section">26.10.2020</a></li>
+<li><a href="#exercise-1"><strong>Exercise 1</strong></a></li>
+<li><a href="#section-1">2.11.2020</a></li>
+<li><a href="#analysis-exercise-2"><strong>Analysis, Exercise 2</strong></a></li>
 </ul>
 </div>
 
@@ -445,28 +447,111 @@ summary {
 <div id="introduction-to-open-data-science---course-project" class="section level1">
 <h1>Introduction to Open Data Science - Course Project</h1>
 </div>
-<div id="day-1" class="section level1">
-<h1>Day 1</h1>
+<div id="section" class="section level1">
+<h1>26.10.2020</h1>
+</div>
+<div id="exercise-1" class="section level1">
+<h1><strong>Exercise 1</strong></h1>
+<p><strong>Feelings about the course</strong></p>
 <p><em>I heard about this course from my friends. They took it last year and they really liked it. I’ve bee thinking that I should learn some basics of R for a long time now and now I had the opportunity to attend to this course</em>.</p>
 <p><strong>My diary:</strong> <a href="https://sallavei.github.io/IODS-project">Click here</a></p>
-<pre class="r"><code># This is a so-called &quot;R chunk&quot; where you can write R code.
-
-date()</code></pre>
-<pre><code>## [1] &quot;Tue Nov 03 13:25:13 2020&quot;</code></pre>
-<p>The text continues here.</p>
+<pre class="r"><code>date()</code></pre>
+<pre><code>## [1] &quot;Thu Nov 05 17:08:12 2020&quot;</code></pre>
 <hr />
 </div>
-<div id="insert-chapter-2-title-here" class="section level1">
-<h1>Insert chapter 2 title here</h1>
+<div id="section-1" class="section level1">
+<h1>2.11.2020</h1>
+</div>
+<div id="analysis-exercise-2" class="section level1">
+<h1><strong>Analysis, Exercise 2</strong></h1>
+<p><strong>Description of analysed data</strong></p>
+<p>The aim of this study was to set light on the relationship between learning approaches and students’ achievements in an introductory statistics course in Finland.</p>
+<p>The data set (N = 166) used in this report consisted of 7 variables: Gender, Age, attitude, Deep approach, Surface approach, Strategic approach and total points. The participants were 17-55-years-olds (mean = 25.5) and 66 % of them were Female.</p>
+<p>Read more about the used scales and variables from <a href="https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS2-meta.txt">here</a></p>
+<p>R script for graphical overview of the data:</p>
+<pre class="r"><code>analysisdata &lt;- read.table(&quot;http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/learning2014.txt&quot;, sep=&quot;,&quot;, header=TRUE)
+
+#Description of data set
+library(Hmisc)</code></pre>
+<pre><code>## Loading required package: lattice</code></pre>
+<pre><code>## Loading required package: survival</code></pre>
+<pre><code>## Loading required package: Formula</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Hmisc&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     format.pval, units</code></pre>
+<pre class="r"><code>describe(analysisdata)</code></pre>
+<pre><code>## analysisdata 
+## 
+##  7  Variables      166  Observations
+## --------------------------------------------------------------------------------
+## gender 
+##        n  missing distinct 
+##      166        0        2 
+##                       
+## Value          F     M
+## Frequency    110    56
+## Proportion 0.663 0.337
+## --------------------------------------------------------------------------------
+## age 
+##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+##      166        0       31    0.987    25.51    7.461     19.0     20.0 
+##      .25      .50      .75      .90      .95 
+##     21.0     22.0     27.0     37.0     43.5 
+## 
+## lowest : 17 18 19 20 21, highest: 48 49 50 53 55
+## --------------------------------------------------------------------------------
+## attitude 
+##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+##      166        0       32    0.998    3.143   0.8321     1.90     2.10 
+##      .25      .50      .75      .90      .95 
+##     2.60     3.20     3.70     4.05     4.20 
+## 
+## lowest : 1.4 1.6 1.7 1.8 1.9, highest: 4.4 4.5 4.7 4.8 5.0
+## --------------------------------------------------------------------------------
+## deep 
+##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+##      166        0       33    0.997     3.68   0.6188    2.854    3.000 
+##      .25      .50      .75      .90      .95 
+##    3.333    3.667    4.083    4.333    4.479 
+## 
+## lowest : 1.583333 2.083333 2.250000 2.333333 2.583333
+## highest: 4.583333 4.666667 4.750000 4.833333 4.916667
+## --------------------------------------------------------------------------------
+## stra 
+##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+##      166        0       31    0.997    3.121   0.8794    1.781    2.125 
+##      .25      .50      .75      .90      .95 
+##    2.625    3.188    3.625    4.000    4.344 
+## 
+## lowest : 1.250 1.375 1.500 1.625 1.750, highest: 4.500 4.625 4.750 4.875 5.000
+## --------------------------------------------------------------------------------
+## surf 
+##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+##      166        0       31    0.997    2.787   0.5999    2.000    2.083 
+##      .25      .50      .75      .90      .95 
+##    2.417    2.833    3.167    3.500    3.729 
+## 
+## lowest : 1.583333 1.666667 1.750000 1.833333 1.916667
+## highest: 3.750000 3.833333 3.916667 4.000000 4.333333
+## --------------------------------------------------------------------------------
+## points 
+##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+##      166        0       23    0.996    22.72    6.651    11.25    16.00 
+##      .25      .50      .75      .90      .95 
+##    19.00    23.00    27.75    31.00    31.00 
+## 
+## lowest :  7  9 10 11 12, highest: 29 30 31 32 33
+## --------------------------------------------------------------------------------</code></pre>
+<p>Here we go again…</p>
 <p><em>Describe the work you have done this week and summarize your learning.</em></p>
 <ul>
 <li>Describe your work and results clearly.</li>
 <li>Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.</li>
 <li>Assume the reader has no previous knowledge of your data or the more advanced methods you are using.</li>
 </ul>
-<pre class="r"><code>date()</code></pre>
-<pre><code>## [1] &quot;Tue Nov 03 13:25:13 2020&quot;</code></pre>
-<p>Here we go again…</p>
 <hr />
 <p>(more chapters to be added similarly as we proceed with the course!)</p>
 </div>
