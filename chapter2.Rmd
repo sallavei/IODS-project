@@ -53,21 +53,23 @@ table(analysisdata$gender)
 
 #### **A Plot Matrix**
 
-Find bellow a plot matrix that includes all the variables refined based on gender. As you can see from the matrix, there are great significant correlation between surface approach & deep approach and attitude & points.
+Find bellow a plot matrix that includes all the variables. As you can see from the matrix, there are great significant correlation between surface approach & deep approach and attitude & points.
 
 ```{r}
-# creating a plot matrix out of all the variables to see how females and males differs from each other.
+
+# creating a plot matrix out of all the variables.
 library(GGally)
 library(ggplot2)
 
-p <- ggpairs(analysisdata, mapping = aes(col = gender, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
+p <- ggpairs(analysisdata, mapping = aes(alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
 
 p
+
 ```
 
 #### Creating a regression model with explanatory variables
 
-I chose surf, deep and attitude variables for this exercise. Total points were my dependent variable.
+I chose surf, deep and attitude as the predicted variables for this exercise. Total points were my dependent variable.
 
 Bellow you can find model fit indexes.
 
@@ -79,11 +81,31 @@ my_model <- lm(points ~ attitude + deep + surf, data = analysisdata)
 summary(my_model)
 
 ```
+#### **Interpretation of the model fit**
 
-Choose three variables as explanatory variables and fit a regression model where exam points is the target (dependent) variable. Show a summary of the fitted model and comment and interpret the results. Explain and interpret the statistical test related to the model parameters. If an explanatory variable in your model does not have a statistically significant relationship with the target variable, remove the variable from the model and fit the model again without it. (0-4 points)
+The indexes above show that the model in not working as it is. F-statistic's p-value is greater than 0.05 which means that the overall model is not significant. The only working predicted variable seems to be attitude.
 
+Deep and surf didn't have significant relationship with the dependent variable. They were removed from the model bellow. Since there is only one predicted variable now, the overall model fit is still not significant.
 
+```{r}
+# creating a regression model
+my_model2 <- lm(points ~ attitude, data = analysisdata)
 
-Using a summary of your fitted model, explain the relationship between the chosen explanatory variables and the target variable (interpret the model parameters). Explain and interpret the multiple R squared of the model. (0-3 points)
+# printing out a summary of the model
+summary(my_model2)
 
-Produce the following diagnostic plots: Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage. Explain the assumptions of the model and interpret the validity of those assumptions based on the diagnostic plots. (0-3 points)
+```
+
+#### **Results of the regression analysis**
+
+Seems like only attitude predicts overall exam points. Good attitude predicts high exam points.The multiple of R squared of the model shows that 19% of the variation is points is explained by the attitude.
+
+#### **Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage**
+
+As you can see bellow *Residual vs. Fitter points* spread randomly. *Normal Q-Q plot points* fits quite well to the line which indicates that the model is normally distributed. There are no outliners standing out in *Residuals vs. Leverage plot*.
+
+```{r}
+par(mfrow = c(2,2))
+plot(my_model2, which = c(1, 2, 5))
+
+```
