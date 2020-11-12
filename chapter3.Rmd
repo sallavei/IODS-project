@@ -1,0 +1,194 @@
+---
+title: "Chapter3"
+author: "Salla Veijonaho"
+date: "12 11 2020"
+output: html_document
+---
+
+# 09.11.2020
+
+# **Exercise 3: Logistic regression**
+
+
+**Description of the analysed data**
+
+The data used in this exercise was collected from two secondary education schools in Portugal. The data includes information about weekly alcohol use, grades (in Mathematics and Portuguese), demographic, social and school related features.
+
+Read more about the used scales and variables from 
+[here](https://archive.ics.uci.edu/ml/datasets/Student+Performance)
+
+Find bellow the descriptives of variables in the data set
+
+```{r,warning=F,message=F,results='hide'}
+
+#Open packages
+library(tidyverse)
+library(tidyr)
+library(psych)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(patchwork)
+library(openxlsx)
+
+#Read the data
+alc_data <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/alc.txt", sep=",", header=TRUE)
+
+#Checking the data
+summary(alc_data)
+```
+
+```{r}
+describe(alc_data)
+```
+
+
+##### **Exploratory analysis**
+
+
+I chose following variables to do exploratory analysis: current health status (health), number of past class failures (failures), going out with friends (goout) and  quality of family relationships (famrel).
+
+
+My hypothesis (based on my personal speculations):
+
+H1. Good health status is negatively related to high alcohol consumption.
+
+H2. Number of past class failures is positively related to high alcohol consumption.
+
+H3. Going out with friends increases the risk for high alcohol consumption. 
+
+H4. Higher quality of family relationships reduce the risk for high alcohol consumption.
+
+
+##### **Exploring the the distributions of the chosen variables and their relationships with alcohol consumption**
+
+
+###### *Health status*
+
+Despite of what was assumed above (H1), There are not big differences in health status between the high alcohol users and the others when we look at the boxplots. The Chi-squared test also indicates that there is no statistically significant relationship between these two variables (p > .05).
+
+```{r}
+g1 <- ggplot(alc_data, aes(x = high_use, y = health))
+g1 + geom_boxplot() + ylab("Health status")
+
+prop.table(table(alc_data$health, alc_data$high_use))
+
+chisq.test(alc_data$health,alc_data$high_use)
+
+```
+
+##### *Class failures*
+
+As assumed in hypothesis (H2), the high alcohol users have more past class failures when we look at the boxplots.The Chi-squared test also indicates that the relationship is statically significant (p < .05).
+
+```{r}
+
+g1 <- ggplot(alc_data, aes(x = high_use, y = failures))
+g1 + geom_boxplot() + ylab("Class failures")
+
+prop.table(table(alc_data$failures, alc_data$high_use))
+
+chisq.test(alc_data$failures,alc_data$high_use)
+
+```
+
+
+##### *Going out with friends*
+
+As assumed in hypothesis (H3), the high alcohol users are more often going out with friends based on the boxplots.However, the Chi-squared test indicates that the relationship is not statically significant (p > .05).
+
+```{r}
+
+g1 <- ggplot(alc_data, aes(x = high_use, y = goout))
+g1 + geom_boxplot() + ylab("Going out with friends")
+
+prop.table(table(alc_data$goout, alc_data$high_use))
+
+chisq.test(alc_data$goout,alc_data$high_use)
+
+```
+
+
+##### *Family relationships*
+
+
+As assumed in hypothesis (H4), the high alcohol users do not have as good family relationships as the others have when we look at the boxplots.The Chi-squared test also indicates that the relationship is statically significant (p < .05). However, 
+
+```{r}
+
+g1 <- ggplot(alc_data, aes(x = high_use, y = famrel))
+g1 + geom_boxplot() + ylab("Family relationships")
+
+prop.table(table(alc_data$famrel, alc_data$high_use))
+
+chisq.test(alc_data$famrel,alc_data$high_use)
+
+```
+
+
+#### **Logistic regression**
+
+
+Based on the model bellow, only going out with friends and family relationships are significant predictors of high alcohol consumption. Hypothesis H1 and H2 are rejected. Health and failures variables will be moved from the model for further analysis.
+
+```{r}
+
+model_1 <- 
+  glm(high_use ~ 
+        health + failures + goout + famrel,
+      data=alc_data)
+summary(model_1)
+
+model_2 <- 
+  glm(high_use ~ 
+        goout + famrel,
+      data=alc_data)
+summary(model_2)
+
+```
+
+
+As seen in the new model bellow, one step increase in going out increases the odds of high alcohol usage by 15% and having good family relations decrease the odds by 15%.
+
+
+```{r}
+
+model_3 <- 
+  glm(high_use ~ 
+        famrel + goout,
+      data=alc_data)
+
+OR <- exp(coef(model_3))
+CI <- exp(confint(model_3))
+
+cbind(OR,CI)
+
+```
+
+
+ **Cross tabulation**
+ 
+ As seen bellow, the number of inaccurately classified individuals is around 27%. The model estimates that 11% would be high alcohol users.
+
+ ```{r}
+probs <- predict(model_2, type = "response")
+alc_data <- mutate(alc_data, probability = probs)
+
+alc_data <- mutate(alc_data, predicted_high=probability> 0.5)
+
+table(high_use = alc_data$high_use, prediction = alc_data$predicted_high) %>% prop.table() %>% addmargins()
+  
+ggplot(alc_data, aes(x = probability, y = high_use, col=predicted_high)) +
+  geom_point(size=2)
+  
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+loss_func(class = alc_data$high_use, prob = alc_data$probability)
+ 
+ ```
+
+
+
