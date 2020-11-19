@@ -1,0 +1,211 @@
+---
+title: "Chapter4"
+author: "Salla Veijonaho"
+date: "19 11 2020"
+output: html_document
+---
+# 16.11.2020
+
+# **Exercise 4: Clustering and classification**
+
+
+
+
+__*!!Note that I've decided to hide my codes because the report looks much clearer without them. Whenever you need to see the codes I've written, please click the "code"-boxes on the right.!!*__ 
+
+
+
+
+**Description of the analysed data**
+
+The data used in this exercise includes information of housing values in Suburbs of Boston. The Boston data frame has 506 rows and 14 columns.
+
+Read more about the used scales and variables from 
+[here](https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/Boston.html)
+
+I'll mostly focus on the crime rate in the city in this exercise.
+
+Find bellow the descriptions of variables in the data set
+
+```{r,warning=F,message=F,results='hide'}
+
+#Open packages
+library(MASS)
+library(psych)
+library(tidyverse)
+library(corrplot)
+library(GGally)
+
+#Read the data
+data("Boston")
+
+#Checking the data
+str(Boston)
+```
+
+
+```{r}
+
+describe(Boston)
+gather(Boston) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_histogram()
+
+```
+
+As seen in the descriptive statics and histograms above, great number of the variables are highly skewed. That's also the case with the variable of my main interest, crime rates. That means there are low crime rates in generally in Boston.
+
+Next, to see the relationships between the variables, I'm going to plot a correlation matrix. I eliminated all the correlations that were not significant (p > .05 at 95 % confidence level). The eliminated ones are marked with crosses. 
+
+```{r}
+cor_matrix<-cor(Boston) %>% round(digits = 2)
+cor_matrix
+
+pvalues <-cor.mtest(Boston, conf.level = .95)
+corrplot(cor_matrix, method= "circle", type="upper", cl.pos="b", tl.pos="d", tl.cex = 0.6, number.cex=0.5,p.mat=pvalues$p, sig.level=0.05)
+```
+
+As seen above, there seems to be strong positive correlation between access to highways (rad) and property-tax rates (tax) (r = .91). There are also strong negative correlations between lower status of the population (lstat) and median value of owner-occupied homes (medv) (r = - .74), proportion of owner-occupied units built prior to 1940 (age) and weighted mean of distances to five Boston employment centres (dis) (r = -.75) and also dis-variable and nitrogen oxides concentration (r = -0.77).
+
+
+**Standardizing the data set**
+
+Next, I'll standardize the data set and scale the variables around their mean, which is now 0. As seen in the descriptive table bellow, the distributions are still skewed.
+
+```{r}
+
+boston_scaled <- scale(Boston)
+
+class(boston_scaled)
+
+boston_scaled <- as.data.frame(boston_scaled)
+
+summary(boston_scaled)
+describe(boston_scaled)
+
+```
+
+Next, I'll create a new categorical variable of the crime rates. I'll use the quantiles as the break points in the categorical variable. See bellow a table of the new crime variable.
+
+Then, I'll drop  the old crime rate variable and divide the dataset to train and test sets, so that 80% of the data belongs to the train set. 
+
+
+```{r}
+#Save categories of crime rate
+bins <- quantile(boston_scaled$crim)
+
+#new variable
+crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, labels = c("low", "med_low", "med_high", "high"))
+table(crime)
+
+# remove original crim from the dataset
+boston_scaled <- dplyr::select(boston_scaled, -crim)
+
+# add the new categorical value to scaled data
+boston_scaled <- data.frame(boston_scaled, crime)
+
+# number of rows in the Boston dataset 
+n <- nrow(boston_scaled)
+
+# choose randomly 80% of the rows
+ind <- sample(n,  size = n * 0.8)
+
+# create train set
+train <- boston_scaled[ind,]
+
+# create test set 
+test <- boston_scaled[-ind,]
+
+# save the correct classes from test data
+correct_classes <- test$crime
+
+# remove the crime variable from test data
+test <- dplyr::select(test, -crime)
+```
+
+
+##### **Linear Discriminant analysis**
+
+
+
+
+```{r}
+
+# linear discriminant analysis
+lda.fit <- lda(crime ~ ., data = train)
+
+# print the lda.fit object
+lda.fit
+
+# the function for lda biplot arrows
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "orange", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+# target classes as numeric
+classes <- as.numeric(train$crime)
+
+# plot the lda results
+plot(lda.fit, dimen = 2, col = classes, pch = classes)
+lda.arrows(lda.fit, myscale = 1)
+
+# predict classes with test data
+lda.pred <- predict(lda.fit, newdata = test)
+
+# cross tabulate the results
+table(correct = correct_classes, predicted = lda.pred$class)
+
+```
+
+The plot shows that the high crime rate areas groups together relatively well, but the other groups are more overlapping with each other.
+
+Seems that the access to radial highways separates relatively well the high crime rate group. Summary of the model shows that mean of the access to radial highways-variable is high in the high crime rate group, and lower in the others. The findings indicates that there are more crimes happening in the areas of Boston with easy access to highways.
+
+
+When we look at the prediction table, we can see that the model groups the high crime rate areas pretty correctly but had more difficulties with the other groups.
+
+
+##### **K-means**
+
+I'll start with reloading the Boston data set and standardize it.Then, I'll calculate the distances between the observations. I'll run it using both Euclidean (the first table) and Manhattan (the second one) methods.
+
+```{r}
+
+data('Boston')
+Boston = scale(Boston)
+Boston <- as.data.frame(Boston)
+
+# euclidean distance matrix
+dist_eu <- dist(Boston)
+summary(dist_eu)
+
+# manhattan distance matrix
+dist_man <- dist(Boston, method = 'manhattan')
+summary(dist_man)
+
+```
+
+Next, I'm going to run the k-means algorithm for different cluster numbers. My maximum number for clusters is 10. Based on the plot bellow, the optimal number of clusters is two.  
+
+```{r}
+
+# determine the best number of clusters
+k_max <- 10
+# calculate the total within sum of squares
+twcss <- sapply(1:k_max, function(k){kmeans(Boston, k)$tot.withinss})
+# visualize the results
+qplot(x = 1:k_max, y = twcss, geom = 'line')
+
+# k-means clustering
+km <-kmeans(Boston, centers = 2)
+
+# plot the whole Boston dataset with clusters
+pairs(Boston, col = km$cluster)
+
+
+```
+
+
