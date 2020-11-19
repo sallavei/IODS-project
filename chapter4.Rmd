@@ -190,6 +190,7 @@ summary(dist_man)
 
 Next, I'm going to run the k-means algorithm for different cluster numbers. My maximum number for clusters is 10. Based on the plot bellow, the optimal number of clusters is two.  
 
+
 ```{r}
 
 # determine the best number of clusters
