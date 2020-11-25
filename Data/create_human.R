@@ -78,3 +78,70 @@ str(human)
 write.table(human, file = "human.csv", sep = ",")
 
 
+
+
+
+
+# Salla Veijonaho, 23.11.2020
+# Exercise 5: Data wrangling
+
+#Just in case there is something wrong with the data wrangling I did last week, I'll read the ready made data for this part.
+human1 <- read.csv("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/human1.txt", sep = ",")
+
+#Checking the data
+dim(human1)
+str(human1)
+
+#The data includes 195 obs. of 19 variables.
+#The data combines several indicators from most countries in the world.
+#The variables measure phenomena related to health & knowledge and gender empowerment
+#The orginal data from: http://hdr.undp.org/en/content/human-development-index-hdi
+
+#Mutating GNI variable
+library(stringr)
+
+# looking at the structure of the GNI column in 'human'
+str(human1$GNI)
+
+# removing the commas from GNI and print out a numeric version of it
+str_replace(human1$GNI, pattern=",", replace ="") %>% as.numeric
+
+#Excluding unneeded variables
+library(dplyr)
+
+keep <- c("Country", "Edu2.FM", "Labo.FM", "Life.Exp", "Edu.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F")
+human1 <- select(human1, one_of(keep))
+complete.cases(human1)
+
+#Removing all rows with missing values 
+
+# Printing out the data along with a completeness indicator as the last column
+data.frame(human1[-1], comp = complete.cases(human1))
+
+# filtering out all rows with NA values
+human_ <- filter(human1, complete.cases(human1))
+
+#checking that everything is ok
+data.frame(human_[-1], comp = complete.cases(human_))
+
+#Removing the observations which relate to regions instead of countries.
+
+#Checking out the last 10 obs. in the data set
+tail(human1, 10)
+
+#looks like the last 7 obs. are not countries and they need to be removed.
+last <- nrow(human1) - 7
+human_ <- human1[1:last, ]
+
+# adding countries as row names
+rownames(human1) <- human1$Country
+
+#removing country name column from the data
+human_ <- select(human1, -Country)
+
+#Checking the data before saving
+dim(human_)
+
+#Saving the new data set by over writing the odl one.
+write.table(human_, file = "human.csv", sep = ",")
+
