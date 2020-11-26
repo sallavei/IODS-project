@@ -1,0 +1,109 @@
+---
+title: "Chapter5"
+author: "Salla Veijonaho"
+date: "26 11 2020"
+output: html_document
+---
+
+# 23.11.2020
+
+# **Exercise 5: Clustering and classification**
+
+
+**Description of the analysed data**
+
+The data set used in these analysis consists of 8 variables (n = 155) and all the variables in the data are continuous. The data combines several indicators from most countries in the world. The variables measure phenomena related to health & knowledge and gender empowerment
+
+Read more about the data from [here](http://hdr.undp.org/en/content/human-development-index-hdi)
+
+##### **Here's a little glossary to help understand the short terms used in tables:**
+
+**GNI** = Gross National Income per capita
+
+**Life.Exp** = Life expectancy at birth
+
+**Edu.Exp** = Expected years of schooling
+
+**Mat.Mor** = Maternal mortality ratio
+
+**Ado.Birth** = Adolescent birth rate
+
+**Parli.F** = Percetange of female representatives in parliament
+
+**Edu2.FM** = Proportion of females/ males with at least secondary education
+
+**Labo.FM** = Proportion of females/ males in the labour force
+
+
+##### **Find bellow the descriptions of variables in the data set**
+
+```{r,warning=F,message=F,results='hide'}
+
+#Open packages
+library(psych)
+library(tidyverse)
+library(corrplot)
+library(GGally)
+library(ggplot2)
+
+#Read the data
+
+human <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/human2.txt", sep=",", header=TRUE)
+
+#Checking the data
+str(human)
+
+```
+
+
+```{r}
+describe(human)
+
+gather(human) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_histogram()
+
+p <- ggpairs(human, mapping = aes(alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
+p
+
+cor_matrix<-cor(human) %>% round(digits = 2)
+pvalues <-cor.mtest(human, conf.level = .95)
+corrplot(cor_matrix, method= "circle", type="upper", cl.pos="b", tl.pos="d", tl.cex = 0.6, number.cex=0.5,p.mat=pvalues$p, sig.level=0.05)
+
+```
+
+When we look at the descriptive table and histograms above, we can see that there are couple variables that are highly skewed. Adolescent birth rate and Maternal mortality ratio seem to be quite low in most of the countries. Also GNI (Gross National Income per capita) is under 40 000 in the majority of the countries.
+
+Also, when we look at the ggpairs output and correlation matrix, we can see that there are high positive correlation between Adolescent birth rate and Maternal mortality ratio. Life expectancy at birth correlates negatively with both maternal morality ration and adolescent birth rate. There are also high negative correlation between Expected years of schooling and Adolescent birth rate. On the line with other strong correlations, there are also strong positive correlation between Expected years of schooling and Life expectancy at birth.
+  
+
+##### **principal component analysis**
+
+
+First, I'll perform principal component analysis (PCA) on the not standardized data. 
+
+
+```{r}
+pca_human <- prcomp(human)
+biplot(pca_human, choices = 1:2, cex = c(0.8, 1), col = c("grey40", "deeppink2"))
+
+summary(pca_human)
+
+```
+
+As seen above, GNI explains all of the variability.However, the GNI values' variances are higher than the other variables'. The PCA treats the variable with the largest variance as the most important one. Therefore, it is important to standardize the data. 
+
+Next, to identify the real dimensions, I'll repeat the analysis with standardized data. 
+
+```{r}
+human_ <- scale(human)
+
+pca_human_ <- prcomp(human_)
+
+biplot(pca_human_, choices = 1:2, cex = c(0.5, 0.45), col = c("grey85", "deeppink2"))
+
+summary(pca_human_)
+
+```
+
+As seen bellow, now there are several variables that explaining the variance. Expected years of schooling, GNI, life expectancy at birth, maternal mortality and  adolescent birth rate load to one PC that explains 54% of the total variability in the data. When compared to the other variables, maternal mortality and adolescent birth rate seems to operate to an opposite direction.
+
+Exercise 5 to be continue...
