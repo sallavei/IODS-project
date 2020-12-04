@@ -208,4 +208,17 @@ summary(Model3)
 anova(Model2, Model3)
 ```
 
-The results shows that the model with both random intercept and random slope explains more of the variance than the model with only random intercept.
+The results shows that the model with both random intercept and random slope explains more of the variance than the model with only random intercept. An ANOVA test on the both models support the interpretation. The lower the p-value of chi-squared statistics is, the better the fit against the comparison model is.
+
+Finally, I will test the model with interaction between the treatment groups and time. 
+
+```{r}
+
+Model4 <- lmer(bprs ~ week * treatment + (week | subject), data = bprsl, REML = FALSE)
+summary(Model4)
+
+anova(Model4, Model3)
+```
+
+the model with interaction between the treatment groups and time is not statically significantly better than the model with random intercept and random slope.
+
