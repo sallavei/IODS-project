@@ -155,27 +155,16 @@ ggplot(ratsl8S1, aes(x = Group, y = mean)) +
 
 Since I have more than two groups, I'll use ANOVA to explore the statistically significant differences between the groups.
 
-```{r}
-ratsl <- read.table("data/RATSL.txt")
-ratsl$ID <- factor(ratsl$ID)
-ratsl$Group <- factor(ratsl$Group)
 
-ratslano <- ratsl %>%
-  filter(ID !=2 & ID !=12 & ID !=13)
-  
-baseline <- ratslano %>% filter(time==1) %>% select(c("ID","rats")) %>% rename(baseline=rats)
+For some reason my Index.rmd file has problems with knitting the ANOVA test (But ANOVA works when I do it in chapter6.Rmd). That's why I decided to add the ANOVA results here as a pic. If you want to now how I did the analyze, I created separate chapter6_with_anova.rmd and you can find it from [here](https://github.com/sallavei/IODS-project/blob/master/chapter6_with_anova.Rmd).
 
-ratslano2 <-
-  inner_join(ratsl8S1,baseline,by="ID")
-
-# Fit the linear model with the mean as the response 
-fit <- lm(mean ~ baseline + Group, data = ratslano2)
-
-# Compute the analysis of variance table for the fitted model with anova()
-anova(fit)
-
-summary(lm(mean~Group + baseline,
-         data=ratslano2))
-```
+![Analysis of Variance Table](ANOVA rats.png)
+![ANOVA summary](ANOVAsummary.PNG)
 
 Anova shows that the group differences in rats' weight is statically significant. The baseline weight is also some what statically significantly associated with the average weight during the follow-up, but when we look at the summary, we can see that the statical significance is only p < .05. 
+
+
+```{r}
+
+
+```
