@@ -1,0 +1,176 @@
+# 30.11.2020 
+
+# **Exercise 6: Analysis of longitudinal data**
+
+
+#### **Description of analysed data sets**
+
+For this weeks exercise, I'm using two data sets. First I'll start with a data set called ratsl. That data set contains information from a nutrition study conducted in three groups of rats. The groups were put on different diets, and each rats' body weight (grams) was recorded repeatedly over a 9-week period.
+
+The second data set contains information of some medical treatments. the data set includes BPRS rates (brief word for  the brief psychiatric rating scale) of two different treatment groups of 20 man. These patients BPRS levels were followed every week for 8 weeks.
+
+Read more about the data sets from [this books](https://mooc.helsinki.fi/pluginfile.php/143981/course/section/5444/MABS4IODS.pdf) chapters 8 and 9.
+
+```{r,warning=F,message=F,results='hide'}
+
+#Opening packages
+library(psych)
+library(tidyr)
+library(ggplot2)
+library(tidyverse)
+library(knitr)
+
+#Reading the data
+ratsl <- read.table("data/RATSL.txt")
+bprsl <- read.table("data/BPRSL.txt")
+
+#Checking the data
+str(ratsl)
+str(bprsl)
+
+#Looks that I have to factor some of the variables again
+bprsl$treatment <- factor(bprsl$treatment)
+bprsl$subject <- factor(bprsl$subject)
+
+ratsl$ID <- factor(ratsl$ID)
+ratsl$Group <- factor(ratsl$Group)
+
+str(ratsl)
+str(bprsl)
+#Now everything is okey for the analysis
+```
+
+First, I'll start with analyzing ratsl by graphical displays and summary measure approach.
+
+
+```{r}
+
+summary(ratsl)
+
+# Draw the plot
+ggplot(ratsl, aes(x = time, y = rats, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(ratsl$rats), max(ratsl$rats)))
+
+```
+
+From the graphic above we can see lines that show rats' individual growth in time in each three groups. In group 1, the rats seems to be generally smaller than in other groups. In group 2, there seem to be one giant rat but the other group 2 members are smaller that rats in group 3. Generally it looks like the rats' weight increase  in all three groups, but the growth is more settle in group 1.
+
+Next I'll standardize the weight of the rats to see how it effects to the results.
+
+```{r}
+# Standardise the variable rats
+ratsl2 <- ratsl %>%
+  group_by(time) %>%
+  mutate(std_weight = (rats - mean(rats))/sd(rats) ) %>%
+  ungroup()
+
+# Glimpse the data
+glimpse(ratsl2)
+
+# Plot again with the standardized weights
+ggplot(ratsl2, aes(x = time, y = std_weight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  scale_y_continuous(name = "standardized weights")
+
+
+```
+
+Now when we look above, we can see that now the growth in each group is more settled. 
+
+Next, I'll draw some summary graphs that describe better the change over time in group levels. See bellow a plot figure with averaged over the group-specific means by time point.
+
+
+```{r}
+
+# Number of weeks, baseline (week 0) included
+n <- ratsl2$time %>% unique() %>% length()
+
+# Summary data with mean and standard error of weight by group and time point
+ratss <- ratsl2 %>%
+  group_by(Group, time) %>%
+  summarise( mean = mean(rats), se = sd(rats)/sqrt(n) ) %>%
+  ungroup()
+
+# Glimpse the data
+glimpse(ratss)
+
+# Plot the mean profiles
+ggplot(ratss, aes(x = time, y = mean, linetype = Group, shape = Group)) +
+  geom_line() +
+  scale_linetype_manual(values = c(1,2,3)) +
+  geom_point(size=3) +
+  scale_shape_manual(values = c(1,2,3)) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se, linetype="1"), width=0.3) +
+  theme(legend.position = c(0.8,0.8)) +
+  scale_y_continuous(name = "mean(weight) +/- se(weight)")
+
+```
+
+From the plot graph above, we can see that group 1 rats are much smaller than the other rats and their weights don't increase that much over time. The standard error of group 2 is pretty wide. This must have something to do with the fact that there is one giant rat in group 2. That rat is an outlier. Let's see next weather there is other outliers in the groups. 
+
+```{r}
+
+
+# Create a summary data by group and ID with mean as the summary variable (ignoring baseline week 0).
+ratsl8S <- ratsl %>%
+  filter(time > 0) %>%
+  group_by(Group, ID) %>%
+  summarise( mean=mean(rats) ) %>%
+  ungroup()
+
+# Glimpse the data
+glimpse(ratsl8S)
+
+# Draw a boxplot of the mean versus Group
+ggplot(ratsl8S, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4, fill = "pink") +
+  scale_y_continuous(name = "mean(weight), time")
+
+#Filltering out the ouliers
+
+ratsl8S1 <- ratsl8S %>%
+  filter(ID !=2 & ID !=12 & ID !=13)
+  
+
+```
+
+There seems to be one outlier in each group but the outlier in group 2 is the most obvious one. The outliers in groups 1 and 3, are the rats with the lowest means. I will continue the analyses by excluding all the three outliers.
+
+```{r}
+
+ggplot(ratsl8S1, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun  = "mean", geom = "point", shape=23, size=4, fill = "pink") +
+  scale_y_continuous(name = "means of weights without outliers")
+
+
+```
+
+Since I have more than two groups, I'll use ANOVA to explore the statistically significant differences between the groups.
+
+```{r}
+ratsl <- read.table("data/RATSL.txt")
+ratsl$ID <- factor(ratsl$ID)
+ratsl$Group <- factor(ratsl$Group)
+
+ratslano <- ratsl %>%
+  filter(ID !=2 & ID !=12 & ID !=13)
+  
+baseline <- ratslano %>% filter(time==1) %>% select(c("ID","rats")) %>% rename(baseline=rats)
+
+ratslano2 <-
+  inner_join(ratsl8S1,baseline,by="ID")
+
+# Fit the linear model with the mean as the response 
+fit <- lm(mean ~ baseline + Group, data = ratslano2)
+
+# Compute the analysis of variance table for the fitted model with anova()
+anova(fit)
+```
