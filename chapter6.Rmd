@@ -198,7 +198,7 @@ summary(Model2)
 
 ```
 
-Next, I'll add each individuals their own slopes.  
+Next, I'll add each individuals their own slope.  
 
 ```{r}
 
@@ -220,5 +220,36 @@ summary(Model4)
 anova(Model4, Model3)
 ```
 
-the model with interaction between the treatment groups and time is not statically significantly better than the model with random intercept and random slope.
+
+
+the model with interaction between the treatment groups and time is not statically significantly better than the model with random intercept and random slope. Let's continue the analysis with with the model with random intercept and slope. Next I'll compare plot graphs made based original data (the first ones) and plot graphs made from fitted model (the last ones).
+
+
+```{r}
+ggplot(bprsl, aes(x = week, y = bprs, linetype = subject)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(bprsl$bprs), max(bprsl$bprs)))
+
+Fitted <- fitted(Model3)
+
+bprsl <- bprsl %>%
+  mutate(Fitted)
+
+ggplot(bprsl, aes(x = week, y = Fitted, linetype = subject)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(bprsl$bprs), max(bprsl$bprs)))
+
+
+```
+
+From the graphs with fitted plot graphs (the last ones) we can see that BPRS levels decreases over time. However, it's hard to identify any differences between the treatment groups. To conclude, looks like both of the treatments manage decrease BPRS levels.
+
+
+
 
