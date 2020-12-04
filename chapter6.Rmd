@@ -164,7 +164,48 @@ For some reason my Index.rmd file has problems with knitting the ANOVA test (But
 Anova shows that the group differences in rats' weight is statically significant. The baseline weight is also some what statically significantly associated with the average weight during the follow-up, but when we look at the summary, we can see that the statical significance is only p < .05. 
 
 
-```{r}
+Next I'll move on the bprs data set and do linear mixed effects model.
 
+Here's some descriptives of the data set:
+
+```{r}
+summary(bprsl)
+
+ggplot(bprsl, aes(x = week, y = bprs, linetype = subject)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ treatment, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(bprsl$bprs), max(bprsl$bprs)))
 
 ```
+It's hard to do any interpretation based on the plot graphs above. Let's move on to the linear regressions.
+
+```{r}
+Model <- lm(bprs ~ week + treatment, data = bprsl)
+summary(Model)
+
+```
+Looks that Week is significantly related to BPRS, but the treatment group is not. Together the model explains less than 20% of the variation in BPRS (Multiple R-squared is 0.1851).
+
+Then, let's try random intercept model.
+
+```{r}
+library(lme4)
+
+Model2<- lmer(bprs ~ week + treatment + (1 | subject), data = bprsl, REML = FALSE)
+summary(Model2)
+
+```
+
+Next, I'll add each individuals their own slopes.  
+
+```{r}
+
+Model3 <- lmer(bprs ~ week + treatment + (week | subject), data = bprsl, REML = FALSE)
+summary(Model3)
+
+anova(Model2, Model3)
+```
+
+The results shows that the model with both random intercept and random slope explains more of the variance than the model with only random intercept.
